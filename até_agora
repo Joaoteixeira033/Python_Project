@@ -1,0 +1,98 @@
+import tkinter as tk
+import sqlite3
+
+def criar_tabela():
+    conn = sqlite3.connect('lista_compras.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS produtos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            preco REAL,
+            supermercado TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def adicionar_produto():
+    nome = entry_nome.get()
+    preco = float(entry_preco.get())
+    supermercado = entry_supermercado.get()
+
+    conn = sqlite3.connect('lista_compras.db')
+    cursor = conn.cursor()
+    cursor.execute('INSERT INTO produtos (nome, preco, supermercado) VALUES (?, ?, ?)', (nome, preco, supermercado))
+    conn.commit()
+    conn.close()
+
+    entry_nome.delete(0, tk.END)
+    entry_preco.delete(0, tk.END)
+    entry_supermercado.delete(0, tk.END)
+
+# Cria a janela principal
+janela = tk.Tk()
+janela.title('Planeamento de Lista de Compras')
+
+# Resto do código...
+
+# Cria os widgets para adicionar um produto
+label_nome = tk.Label(janela, text='Nome do Produto:')
+label_nome = tk.Label(janela, text='Nome do Produto:')
+label_nome.pack()
+
+entry_nome = tk.Entry(janela)  # Create the entry widget
+entry_nome.pack()
+
+label_preco = tk.Label(janela, text='Preço do Produto:')
+label_preco.pack()
+
+entry_preco = tk.Entry(janela)  # Create the entry widget
+entry_preco.pack()
+
+label_supermercado = tk.Label(janela, text='Supermercado:')
+label_supermercado.pack()
+
+entry_supermercado = tk.Entry(janela)  # Create the entry widget
+entry_supermercado.pack()
+
+botao_adicionar = tk.Button(janela, text='Adicionar', command=adicionar_produto)
+botao_adicionar.pack()
+
+def buscar_melhor_preco():
+    nome_produto = entry_buscar.get()
+
+    conn = sqlite3.connect('lista_compras.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT supermercado, preco FROM produtos WHERE nome = ? ORDER BY preco ASC', (nome_produto,))
+    melhores_precos = cursor.fetchall()
+    conn.close()
+
+    janela_melhor_preco = tk.Toplevel(janela)
+    janela_melhor_preco.title('Melhor Preço')
+
+    if len(melhores_precos) > 0:
+        for i, (supermercado, preco) in enumerate(melhores_precos):
+            label_supermercado = tk.Label(janela_melhor_preco, text=f'Supermercado {i+1}: {supermercado}')
+            label_supermercado.pack()
+
+            label_preco = tk.Label(janela_melhor_preco, text=f'Preço: {preco}')
+            label_preco.pack()
+    else:
+        label_nenhum_produto = tk.Label(janela_melhor_preco, text='Nenhum produto encontrado.')
+        label_nenhum_produto.pack()
+
+# Resto do código...
+
+# Cria os widgets para buscar o melhor preço
+label_buscar = tk.Label(janela, text='Buscar Melhor Preço:')
+label_buscar.pack()
+
+entry_buscar = tk.Entry(janela)
+entry_buscar.pack()
+
+botao_buscar = tk.Button(janela, text='Buscar', command=buscar_melhor_preco)
+botao_buscar.pack()
+
+# Inicia o loop principal da aplicação
+janela.mainloop()
